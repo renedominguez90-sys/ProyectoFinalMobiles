@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<color name="background_clean">#FAFAFA</color> <color name="surface_white">#FFFFFF</color>
+
+<color name="brand_primary">#06C167</color> <color name="brand_primary_dark">#049A52</color>
+
+<color name="text_dark_main">#1F1F1F</color> <color name="text_muted">#6B6B6B</color>     <color name="input_stroke">#E2E8F0</color>    </resources>

@@ -124,7 +124,7 @@ public class AgregarProductoActivity extends AppCompatActivity {
             etDescripcion.setText(intentOrigen.getStringExtra("PRODUCTO_DESCRIPCION"));
 
             double precio = intentOrigen.getDoubleExtra("PRODUCTO_PRECIO", 0.0);
-            etPrecio.setText(String.valueOf(precio)); // CORREGIDO: etPrecioProducto eliminado
+            etPrecio.setText(String.valueOf(precio));
 
             int cantidad = intentOrigen.getIntExtra("PRODUCTO_CANTIDAD", 0);
             etCantidad.setText(String.valueOf(cantidad));
@@ -179,7 +179,7 @@ public class AgregarProductoActivity extends AppCompatActivity {
             jsonProducto.put("precio", prec);
             jsonProducto.put("cantidad", cant);
             jsonProducto.put("categoria", cat.toUpperCase());
-            jsonProducto.put("disponible", true);
+            jsonProducto.put("disponible", true); // Asegura que no se guarde como deshabilitado
         } catch (JSONException e) {
             Log.e("JSON_ERROR", "Error armando los parámetros del producto: " + e.getMessage());
         }
@@ -205,9 +205,10 @@ public class AgregarProductoActivity extends AppCompatActivity {
 
         OkHttpClient client = new OkHttpClient();
 
+        // CORRECCIÓN: Para actualizar, el backend pide un String plano (Multipart con RequestBody de tipo texto)
         RequestBody productoPartBody = RequestBody.create(
                 jsonProducto.toString(),
-                MediaType.parse("application/json; charset=utf-8")
+                MediaType.parse("text/plain; charset=utf-8")
         );
 
         MultipartBody.Builder builder = new MultipartBody.Builder()
@@ -217,11 +218,16 @@ public class AgregarProductoActivity extends AppCompatActivity {
         if (imagenBytes != null) {
             RequestBody archivoPartBody = RequestBody.create(imagenBytes, MediaType.parse("image/jpeg"));
             builder.addFormDataPart("archivo", "producto_upload.jpg", archivoPartBody);
+        } else if (esModoEdicion) {
+            // Si editamos pero no cambiamos la foto, mandamos un archivo multipart vacío para que no explote la firma
+            RequestBody archivoVacioPartBody = RequestBody.create(new byte[0], MediaType.parse("image/jpeg"));
+            builder.addFormDataPart("archivo", "", archivoVacioPartBody);
         }
 
         MultipartBody requestBody = builder.build();
 
-        String urlDestino = esModoEdicion ? "http://10.0.2.2:8080/api/productos/" + productoIdEditar : URL_API_CREAR;
+        // CORRECCIÓN: Ruta exacta adaptada al @PutMapping(value = "/actualizar/{id}") del controlador
+        String urlDestino = esModoEdicion ? "http://10.0.2.2:8080/api/productos/actualizar/" + productoIdEditar : URL_API_CREAR;
         String metodoHttp = esModoEdicion ? "PUT" : "POST";
 
         Request request = new Request.Builder()
@@ -254,7 +260,7 @@ public class AgregarProductoActivity extends AppCompatActivity {
                     Log.e("API_ERROR", "Respuesta detallada del backend: " + cuerpoError);
 
                     runOnUiThread(() -> Toast.makeText(AgregarProductoActivity.this,
-                            "Error (" + codigoEstado + "): Estructura rechazada por el backend", Toast.LENGTH_LONG).show());
+                            "Error (" + codigoEstado + "): Verifique la respuesta del servidor", Toast.LENGTH_LONG).show());
                 }
             }
         });

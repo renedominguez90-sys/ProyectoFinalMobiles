@@ -52,13 +52,24 @@ public class ProductoAdapter extends RecyclerView.Adapter<ProductoAdapter.Produc
             holder.ivFoto.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
+        // =========================================================================
+        // MANEJO DE ESTADOS E INTERFAZ (IDEA DE RENÉ)
+        // =========================================================================
         if (prod.isDisponible()) {
+            // ESTADO ACTIVO: Se muestra todo con color vivo
             holder.itemView.setAlpha(1.0f);
-            holder.btnEliminar.setText("No Disponible");
+            holder.btnEditar.setVisibility(View.VISIBLE); // Aparece Editar
+
+            // Configuración del botón para Desactivar
+            holder.btnEliminar.setText("Desactivar");
             holder.btnEliminar.setIconResource(android.R.drawable.ic_menu_close_clear_cancel);
         } else {
+            // ESTADO DESACTIVADO: Se apaga el diseño (Gris) y mutan los botones
             holder.itemView.setAlpha(0.5f);
-            holder.btnEliminar.setText("Disponible");
+            holder.btnEditar.setVisibility(View.GONE); // ¡Desaparece Editar!
+
+            // El botón de eliminar se transforma en el botón único de "Activar"
+            holder.btnEliminar.setText("Activar");
             holder.btnEliminar.setIconResource(android.R.drawable.ic_input_add);
         }
 
@@ -72,6 +83,7 @@ public class ProductoAdapter extends RecyclerView.Adapter<ProductoAdapter.Produc
 
         holder.btnEliminar.setOnClickListener(v -> {
             if (listener != null) {
+                // Si estaba disponible, manda false (desactivar). Si no, manda true (activar).
                 listener.onDisponibilidadClick(prod, !prod.isDisponible());
             }
         });
